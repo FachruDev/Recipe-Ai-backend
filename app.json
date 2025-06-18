@@ -1,0 +1,30 @@
+{
+  "name": "Recipe AI Backend",
+  "description": "Backend untuk ekstraksi bahan, pembuatan resep, dan chat interaktif menggunakan AI.",
+  "keywords": ["python", "fastapi", "ai", "recipe"],
+  "repository": "https://github.com/yourusername/recipe_ai",
+  "addons": ["heroku-postgresql:hobby-dev"],
+  "env": {
+    "OPENROUTER_API_KEY": {
+      "description": "API key for OpenRouter AI service",
+      "required": true
+    },
+    "OPENROUTER_BASE_URL": {
+      "description": "Base URL for OpenRouter API",
+      "value": "https://openrouter.ai/api/v1"
+    },
+    "OPENROUTER_MODEL": {
+      "description": "Model to use for OpenRouter API",
+      "value": "opengvlab/internvl3-14b:free"
+    },
+    "CORS_ORIGINS": {
+      "description": "Comma-separated list of allowed origins for CORS",
+      "value": "*"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+} 
