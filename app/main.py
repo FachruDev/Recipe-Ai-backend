@@ -51,10 +51,15 @@ try:
     @app.get("/", tags=["Root"], summary="Cek Status API")
     async def read_root():
         """Endpoint root untuk verifikasi bahwa API berjalan."""
-        return {
+        # Basic response without exposing environment variables in production
+        response = {
             "status": "ok", 
-            "message": "Welcome to Chef AI Backend!",
-            "env_vars": {
+            "message": "Welcome to Chef AI Backend!"
+        }
+        
+        # Add environment variables info only in debug mode
+        if settings.debug_mode:
+            response["env_vars"] = {
                 "database_url": os.environ.get("DATABASE_URL", "Not set"),
                 "cors_origins": os.environ.get("CORS_ORIGINS", "Not set"),
                 "openrouter_model": os.environ.get("OPENROUTER_MODEL", "Not set"),
@@ -63,28 +68,30 @@ try:
                 # Print Python version for debugging
                 "python_version": sys.version
             }
-        }
+            
+        return response
     
-    # Debug endpoint to help diagnose issues
-    @app.get("/debug", tags=["Debug"], summary="Debug Info")
-    async def debug_info():
-        """Debugging endpoint to check environment configuration."""
-        try:
-            return {
-                "status": "ok",
-                "cors_config": {
-                    "origins": settings.cors_origins_list,
-                    "methods": settings.cors_allow_methods_list,
-                    "headers": settings.cors_allow_headers_list,
-                    "credentials": settings.cors_allow_credentials,
-                },
-                "env_vars": {
-                    "database_url": os.environ.get("DATABASE_URL", "Not set"),
-                    "python_version": sys.version,
+    # Debug endpoint to help diagnose issues - only available when debug_mode is True
+    if settings.debug_mode:
+        @app.get("/debug", tags=["Debug"], summary="Debug Info")
+        async def debug_info():
+            """Debugging endpoint to check environment configuration."""
+            try:
+                return {
+                    "status": "ok",
+                    "cors_config": {
+                        "origins": settings.cors_origins_list,
+                        "methods": settings.cors_allow_methods_list,
+                        "headers": settings.cors_allow_headers_list,
+                        "credentials": settings.cors_allow_credentials,
+                    },
+                    "env_vars": {
+                        "database_url": os.environ.get("DATABASE_URL", "Not set"),
+                        "python_version": sys.version,
+                    }
                 }
-            }
-        except Exception as e:
-            return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
+            except Exception as e:
+                return {"status": "error", "message": str(e), "traceback": traceback.format_exc()}
 
 except Exception as e:
     # This helps diagnose startup errors in Heroku

@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     # Database settings
     database_file: str = "recipe_ai.db" 
     
+    # Debug settings
+    debug_mode: bool = False
+    
     # CORS settings
     # Can be set as:
     # - "*" for allow all origins

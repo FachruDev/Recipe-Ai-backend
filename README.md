@@ -70,6 +70,10 @@ Chef AI is an intelligent, conversational backend service that revolutionizes ho
    # Database configuration
    DATABASE_FILE="chef_ai.db"
    
+   # Debug configuration
+   # Set to true for development, false for production
+   DEBUG_MODE=false
+   
    # CORS Configuration
    # Allow all origins (default)
    CORS_ORIGINS=*
@@ -77,6 +81,32 @@ Chef AI is an intelligent, conversational backend service that revolutionizes ho
    # OR specify specific origins (comma-separated)
    # CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com,http://localhost:3000
    ```
+
+### 🐛 Debug Mode
+
+The application includes a debug mode that can be enabled or disabled via environment variables:
+
+1. **Configuration**:
+   - Set `DEBUG_MODE=true` in your `.env` file to enable debugging features
+   - Set `DEBUG_MODE=false` in production to disable debugging features
+
+2. **Debug Features**:
+   - When enabled, the root endpoint (`/`) will display detailed environment information
+   - A special `/debug` endpoint becomes available with comprehensive configuration details
+   - More detailed error messages and configuration information are exposed
+
+3. **Heroku Configuration**:
+   ```bash
+   # Enable debug mode (for troubleshooting only)
+   heroku config:set DEBUG_MODE=true --app your-app-name
+   
+   # Disable debug mode (for production)
+   heroku config:set DEBUG_MODE=false --app your-app-name
+   ```
+
+4. **Security Note**: 
+   - Always disable debug mode in production environments
+   - Debug mode exposes configuration details that could be sensitive
 
 ### 🔒 CORS Configuration
 
