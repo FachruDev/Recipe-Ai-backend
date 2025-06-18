@@ -1,6 +1,6 @@
 # app/config.py
 import os
-from typing import List
+from typing import List, Union
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -17,13 +17,13 @@ class Settings(BaseSettings):
     # - "*" for allow all origins
     # - A comma-separated list of allowed origins (e.g., "https://example.com,https://app.example.com")
     # - A list of origins in environment variables (e.g., ["https://example.com"])
-    cors_origins: List[str] | str = ["*"]
+    cors_origins: Union[List[str], str] = ["*"]
     
     # Additional CORS settings - these can also be customized in .env
     cors_allow_credentials: bool = True
-    cors_allow_methods: List[str] | str = ["*"]
-    cors_allow_headers: List[str] | str = ["*"]
-    cors_expose_headers: List[str] | str = []
+    cors_allow_methods: Union[List[str], str] = ["*"]
+    cors_allow_headers: Union[List[str], str] = ["*"]
+    cors_expose_headers: Union[List[str], str] = []
     cors_max_age: int = 600  # 10 minutes
 
     @property
@@ -46,7 +46,7 @@ class Settings(BaseSettings):
         """Parse CORS_EXPOSE_HEADERS environment variable as a list."""
         return self._parse_list_or_str(self.cors_expose_headers)
     
-    def _parse_list_or_str(self, value: List[str] | str) -> List[str]:
+    def _parse_list_or_str(self, value: Union[List[str], str]) -> List[str]:
         """Helper method to parse string or list values."""
         if isinstance(value, str):
             # If it's a single asterisk, return as is
