@@ -3,6 +3,7 @@ import json
 import base64
 import re
 import uuid 
+import logging
 from typing import List, Optional, Dict, Any
 import httpx
 from fastapi import UploadFile, HTTPException
@@ -15,6 +16,10 @@ from app.prompts import (
 )
 
 settings = Settings()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class AIClient:
     """
@@ -55,6 +60,13 @@ class AIClient:
         if match:
             text = match.group(2)
         
+        # First, try to parse the entire text as JSON
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            # If that fails, try to extract JSON from the text
+            pass
+        
         # Search from the first to the last curly/square bracket
         start = text.find('[') if text.find('[') != -1 else text.find('{')
         end = text.rfind(']') if text.rfind(']') != -1 else text.rfind('}')
@@ -64,7 +76,19 @@ class AIClient:
             try:
                 return json.loads(json_str)
             except json.JSONDecodeError as e:
-                raise ValueError(f"Gagal mem-parse JSON yang diekstrak: {e}\nString Asli: {json_str}")
+                # If JSON is still malformed, try to fix common issues
+                try:
+                    # Fix truncated JSON by completing missing structure
+                    if json_str.count('{') > json_str.count('}'):
+                        json_str += '}' * (json_str.count('{') - json_str.count('}'))
+                    if json_str.count('[') > json_str.count(']'):
+                        json_str += ']' * (json_str.count('[') - json_str.count(']'))
+                    
+                    # Try parsing again after fixes
+                    return json.loads(json_str)
+                except json.JSONDecodeError:
+                    # If still failing, provide detailed error
+                    raise ValueError(f"Gagal mem-parse JSON yang diekstrak: {e}\nString Asli: {json_str}")
         
         raise ValueError("Tidak ada blok JSON yang valid ditemukan dalam respons AI.")
 
@@ -161,6 +185,10 @@ class AIClient:
         try:
             response = await self._execute_chat_completion(messages)
             ai_response_text = response["choices"][0]["message"]["content"]
+            
+            # Log the raw response for debugging
+            logger.info(f"Raw AI response for recipe generation: {ai_response_text[:200]}...")
+            
             recipes = self._extract_json_from_response(ai_response_text)
             
             if not isinstance(recipes, list):
@@ -172,6 +200,8 @@ class AIClient:
             
             return recipes
         except (ValueError, json.JSONDecodeError, IndexError) as e:
+            # Log the full error with traceback
+            logger.error(f"Error processing recipe response: {str(e)}", exc_info=True)
             raise HTTPException(status_code=502, detail=f"Gagal memproses respons resep dari AI: {e}")
 
     async def answer_question(
