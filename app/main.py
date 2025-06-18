@@ -26,9 +26,11 @@ def on_startup():
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=settings.cors_allow_methods_list,
+    allow_headers=settings.cors_allow_headers_list,
+    expose_headers=settings.cors_expose_headers_list,
+    max_age=settings.cors_max_age,
 )
 
 # Register the integrated router under /api prefix

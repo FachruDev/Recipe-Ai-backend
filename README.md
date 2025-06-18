@@ -54,7 +54,7 @@ Chef AI is an intelligent, conversational backend service that revolutionizes ho
 
 1. **Create environment file**:
    ```bash
-   cp .env.example .env
+   cp env.example .env
    ```
 
 2. **Configure your API key**:
@@ -69,6 +69,54 @@ Chef AI is an intelligent, conversational backend service that revolutionizes ho
    
    # Database configuration
    DATABASE_FILE="chef_ai.db"
+   
+   # CORS Configuration
+   # Allow all origins (default)
+   CORS_ORIGINS=*
+   
+   # OR specify specific origins (comma-separated)
+   # CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com,http://localhost:3000
+   ```
+
+### 🔒 CORS Configuration
+
+For production deployment, you should configure CORS (Cross-Origin Resource Sharing) to specify which domains can access your API:
+
+1. **Basic Configuration**:
+   - Set `CORS_ORIGINS` in your `.env` file to control which domains can access your API
+   - Use `*` to allow all origins (not recommended for production)
+   - Use comma-separated list for multiple specific origins
+
+   ```env
+   # Allow all origins (development only)
+   CORS_ORIGINS=*
+   
+   # Allow specific origins (recommended for production)
+   CORS_ORIGINS=https://your-frontend-domain.com,https://admin.your-domain.com
+   ```
+
+2. **Advanced Configuration**:
+   - Additional CORS settings can be customized in `.env` file:
+
+   ```env
+   # Control allowed HTTP methods
+   CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS
+   
+   # Control allowed headers
+   CORS_ALLOW_HEADERS=Content-Type,Authorization
+   
+   # Set whether credentials are allowed
+   CORS_ALLOW_CREDENTIALS=true
+   
+   # Set cache duration for preflight requests (in seconds)
+   CORS_MAX_AGE=600
+   ```
+
+3. **Heroku Configuration**:
+   - When deploying to Heroku, set these values using the Heroku CLI or dashboard:
+
+   ```bash
+   heroku config:set CORS_ORIGINS=https://your-frontend-domain.com --app your-app-name
    ```
 
 ### 🐳 Option 1: Docker (Recommended)
@@ -305,9 +353,24 @@ This project is licensed under the MIT License - see the LICENSE file for detail
    ```
 
 4. Set environment variables:
-   ```
-   heroku config:set OPENROUTER_API_KEY=your_api_key
-   heroku config:set CORS_ORIGINS=https://your-frontend-domain.com
+   ```bash
+   # Required settings
+   heroku config:set OPENROUTER_API_KEY=your_api_key --app your-app-name
+   
+   # CORS configuration (important for frontend access)
+   # For single origin:
+   heroku config:set CORS_ORIGINS=https://your-frontend-domain.com --app your-app-name
+   
+   # For multiple origins (comma-separated):
+   heroku config:set CORS_ORIGINS=https://app.yourdomain.com,https://admin.yourdomain.com --app your-app-name
+   
+   # For development/testing (not recommended for production):
+   # heroku config:set CORS_ORIGINS=* --app your-app-name
+   
+   # Optional advanced CORS settings
+   heroku config:set CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS --app your-app-name
+   heroku config:set CORS_ALLOW_HEADERS=Content-Type,Authorization --app your-app-name
+   heroku config:set CORS_ALLOW_CREDENTIALS=true --app your-app-name
    ```
 
 5. Deploy the application:
@@ -323,6 +386,43 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 7. Open the application:
    ```
    heroku open
+   ```
+
+8. Test the API with your frontend by making a request to:
+   ```
+   https://your-app-name.herokuapp.com/api/session/
+   ```
+
+### Setting Up Custom Domain
+
+1. Add your custom domain to Heroku:
+   ```bash
+   heroku domains:add api.yourdomain.com --app your-app-name
+   ```
+
+2. Get the DNS target:
+   ```bash
+   heroku domains --app your-app-name
+   ```
+
+3. Add a CNAME record at your DNS provider:
+   - Record Type: CNAME
+   - Name/Host: api
+   - Value/Target: your-app-name.herokuapp.com.herokudns.com
+
+4. Enable SSL:
+   ```bash
+   heroku certs:auto:enable --app your-app-name
+   ```
+
+5. Verify setup:
+   ```bash
+   host api.yourdomain.com
+   ```
+
+6. Update your frontend to use the new domain with CORS:
+   ```bash
+   heroku config:set CORS_ORIGINS=https://yourdomain.com --app your-app-name
    ```
 
 ## Local Development
